@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield } from 'lucide-react';
-import { completeCheckpoint, getCheckpoints } from '../utils/checkpointManagement';
+import {
+  completeCheckpoint,
+  getCheckpoints,
+} from '../utils/checkpointManagement';
 import { getHWID } from '../utils/hwid';
 
 export function CheckpointVerification() {
@@ -34,7 +37,7 @@ export function CheckpointVerification() {
         const token = searchParams.get('token');
         if (!token) {
           setError('Invalid verification token');
-          setTimeout(() => navigate('/', { replace: true }), 2000);
+          setTimeout(() => navigate(`/?hwid=${encodeURIComponent(hwid)}`, { replace: true }), 2000);
           return;
         }
 
@@ -47,23 +50,25 @@ export function CheckpointVerification() {
         if (
           (checkpointNumber === 2 && !currentCheckpoints.checkpoint1) ||
           (checkpointNumber === 3 &&
-            (!currentCheckpoints.checkpoint1 || !currentCheckpoints.checkpoint2))
+            (!currentCheckpoints.checkpoint1 ||
+              !currentCheckpoints.checkpoint2))
         ) {
           setError('Previous checkpoints must be completed first');
-          setTimeout(() => navigate('/', { replace: true }), 2000);
+          setTimeout(() => navigate(`/?hwid=${encodeURIComponent(hwid)}`, { replace: true }), 2000);
           return;
         }
 
         await completeCheckpoint(checkpointNumber, token);
 
-        // Success - redirect after a short delay
+        // Success - redirect after a short delay with HWID
         setTimeout(() => {
-          navigate('/', { replace: true });
+          navigate(`/?hwid=${encodeURIComponent(hwid)}`, { replace: true });
         }, 1500);
       } catch (err: any) {
         console.error('Error during checkpoint verification:', err);
+        const hwid = getHWID();
         setError(err.message || 'An error occurred during verification');
-        setTimeout(() => navigate('/', { replace: true }), 2000);
+        setTimeout(() => navigate(`/?hwid=${encodeURIComponent(hwid)}`, { replace: true }), 2000);
       } finally {
         setIsVerifying(false);
       }
