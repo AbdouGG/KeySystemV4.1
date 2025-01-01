@@ -3,12 +3,10 @@ import { Shield } from 'lucide-react';
 import { KeyDisplay } from './KeyDisplay';
 import { CheckpointButton } from './CheckpointButton';
 import { generateKey } from '../utils/keyGeneration';
-import {
-  getExistingValidKey,
-  startKeyValidityCheck,
-} from '../utils/keyManagement';
+import { getExistingValidKey, startKeyValidityCheck } from '../utils/keyManagement';
 import { getCheckpointUrl } from '../utils/checkpointUrls';
 import { getCheckpoints } from '../utils/checkpointManagement';
+import { getHWID } from '../utils/hwid';
 import type { CheckpointStatus, Key } from '../types';
 
 export function KeySystem() {
@@ -21,18 +19,23 @@ export function KeySystem() {
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hwid, setHwid] = useState<string | null>(null);
 
   useEffect(() => {
     const initializeSystem = async () => {
       try {
+        // Get HWID from URL
+        const currentHwid = getHWID();
+        setHwid(currentHwid);
+
         const existingKey = await getExistingValidKey();
         if (existingKey) {
           setGeneratedKey(existingKey);
         }
         const currentCheckpoints = await getCheckpoints();
         setCheckpoints(currentCheckpoints);
-      } catch (e) {
-        console.error('Error initializing system:', e);
+      } catch (e: any) {
+        setError(e.message);
       } finally {
         setIsLoading(false);
       }
@@ -78,11 +81,7 @@ export function KeySystem() {
   };
 
   const handleGenerateKey = async () => {
-    if (
-      !checkpoints.checkpoint1 ||
-      !checkpoints.checkpoint2 ||
-      !checkpoints.checkpoint3
-    ) {
+    if (!checkpoints.checkpoint1 || !checkpoints.checkpoint2 || !checkpoints.checkpoint3) {
       setError('Please complete all checkpoints first');
       return;
     }
@@ -109,11 +108,24 @@ export function KeySystem() {
     );
   }
 
+  if (!hwid) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block p-3 rounded-full bg-red-500 mb-4">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-red-500 mb-4">Invalid Access</h1>
+          <p className="text-gray-400">
+            Please access this page through the Roblox key system.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const currentCheckpoint = getCurrentCheckpoint();
-  const allCheckpointsCompleted =
-    checkpoints.checkpoint1 &&
-    checkpoints.checkpoint2 &&
-    checkpoints.checkpoint3;
+  const allCheckpointsCompleted = checkpoints.checkpoint1 && checkpoints.checkpoint2 && checkpoints.checkpoint3;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
