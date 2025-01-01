@@ -35,9 +35,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 302,
         headers: {
-          Location: `/checkpoint/${checkpointNumber}?token=${encodeURIComponent(
-            existingToken.token
-          )}`,
+          Location: `/checkpoint/${checkpointNumber}?token=${encodeURIComponent(existingToken.token)}&hwid=${encodeURIComponent(hwid)}`,
         },
         body: '',
       };
@@ -82,9 +80,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 302,
       headers: {
-        Location: `/checkpoint/${checkpointNumber}?token=${encodeURIComponent(
-          token
-        )}`,
+        Location: `/checkpoint/${checkpointNumber}?token=${encodeURIComponent(token)}&hwid=${encodeURIComponent(hwid)}`,
       },
       body: '',
     };
